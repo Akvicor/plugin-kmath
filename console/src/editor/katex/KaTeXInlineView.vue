@@ -6,25 +6,19 @@ import { renderKatex } from "./render-katex";
 
 const props = defineProps(nodeViewProps);
 
-const content = computed(() => {
-  return props.node.attrs.content || "";
-});
+const content = computed(() => props.node.attrs.content || "");
 
 const renderedKatex = computed(() => {
-  if (!content.value) {
-    return "";
-  }
+  if (!content.value) return "";
   return renderKatex(content.value, true);
 });
 
 const showEditor = ref(false);
-
 onMounted(() => {
   showEditor.value = props.node.attrs.editMode;
 });
 
 function onEditorChange(value: string) {
-  console.log("value", value);
   props.updateAttributes({ content: value });
 }
 </script>
@@ -36,12 +30,12 @@ function onEditorChange(value: string) {
     :class="{ 'katex-node-view-selected': props.selected }"
   >
     <VDropdown
+      v-model:shown="showEditor"
       :classes="['no-padding']"
       :distance="12"
       placement="bottom"
-      :shown="showEditor"
     >
-      <div class="katex-node-view-content-wrapper">
+      <div class="katex-node-view-content-wrapper" @click.stop="showEditor = true">
         <span
           v-if="node.attrs.content"
           contenteditable="false"

@@ -5,7 +5,7 @@ plugins {
     id "run.halo.plugin.devtools" version "0.6.2"
 }
 
-group 'run.halo.katex'
+group 'run.halo.kmath'
 
 repositories {
     mavenCentral()
@@ -15,7 +15,7 @@ repositories {
 }
 
 dependencies {
-    implementation platform('run.halo.tools.platform:plugin:2.10.0-SNAPSHOT')
+    implementation platform('run.halo.tools.platform:plugin:2.23.0')
     compileOnly 'run.halo.app:api'
 
     testImplementation 'run.halo.app:api'

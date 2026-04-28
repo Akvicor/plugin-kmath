@@ -1,23 +1,21 @@
 apiVersion: plugin.halo.run/v1alpha1
 kind: Plugin
 metadata:
-  name: plugin-katex
-  annotations:
-    "store.halo.run/app-id": "app-ISCsX"
+  name: plugin-kmath
 spec:
   enabled: true
-  requires: ">=2.22.2"
+  requires: ">=2.23.0"
   author:
-    name: Halo
-    website: https://github.com/halo-dev
+    name: Akvicor
+    website: https://github.com/Akvicor
   logo: logo.png
-  repo: https://github.com/halo-sigs/plugin-katex
-  homepage: https://www.halo.run/store/apps/app-ISCsX
-  issues: https://www.halo.run/store/apps/app-ISCsX?tab=comment
-  displayName: "KaTeX"
-  description: "为编辑器和文章渲染提供 KaTeX 支持"
-  settingName: plugin-katex-settings
-  configMapName: plugin-katex-configMap
+  repo: https://github.com/Akvicor/plugin-kmath
+  homepage: https://github.com/Akvicor/plugin-kmath
+  issues: https://github.com/Akvicor/plugin-kmath/issues
+  displayName: "KMath"
+  description: "为编辑器和文章渲染提供 Math 支持"
+  settingName: plugin-kmath-settings
+  configMapName: plugin-kmath-configMap
   license:
     - name: "GPL-3.0"
-      url: "https://github.com/halo-sigs/plugin-katex/blob/main/LICENSE"
+      url: "https://github.com/Akvicor/plugin-kmath/blob/main/LICENSE"

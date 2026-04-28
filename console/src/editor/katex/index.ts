@@ -5,10 +5,10 @@ import {
   nodeInputRule,
   nodePasteRule,
   type ExtendedRegExpMatchArray,
-  Editor,
+  type Editor,
   ToolboxItem,
+  type ExtensionOptions,
   type Range,
-  ExtensionOptions,
 } from "@halo-dev/richtext-editor";
 import KaTeXInlineView from "./KaTeXInlineView.vue";
 import KaTeXBlockView from "./KaTeXBlockView.vue";
@@ -112,6 +112,7 @@ export const ExtensionKatexInline = Node.create<ExtensionOptions>({
 
       const attributes = mergeAttributes(HTMLAttributes, {
         class: "katex-inline",
+        content,
       });
       Object.entries(attributes).forEach(([key, value]) => {
         if (value !== null && value !== undefined) {
@@ -242,7 +243,7 @@ export const ExtensionKatexBlock = Node.create<ExtensionOptions>({
         tag: "div[math-display]",
         getAttrs: (element: HTMLElement) => {
           return {
-            content: element.textContent,
+            content: findKatexRawContent(element),
           };
         },
       },
@@ -250,7 +251,7 @@ export const ExtensionKatexBlock = Node.create<ExtensionOptions>({
         tag: "div.katex-block",
         getAttrs: (element: HTMLElement) => {
           return {
-            content: element.textContent,
+            content: findKatexRawContent(element),
           };
         },
       },
@@ -267,6 +268,7 @@ export const ExtensionKatexBlock = Node.create<ExtensionOptions>({
 
       const attributes = mergeAttributes(HTMLAttributes, {
         class: "katex-block",
+        content,
       });
       Object.entries(attributes).forEach(([key, value]) => {
         if (value !== null && value !== undefined) {
@@ -323,11 +325,11 @@ export const ExtensionKatexBlock = Node.create<ExtensionOptions>({
 const findKatexRawContent = (element: HTMLElement) => {
   const annotation = element.querySelector("annotation");
   if (annotation) {
-    return annotation.textContent;
+    return annotation.textContent || "";
   }
 
   if (element.hasAttribute("content")) {
-    return element.getAttribute("content");
+    return element.getAttribute("content") || "";
   }
 
   if (element.firstChild?.nodeType === 3) {

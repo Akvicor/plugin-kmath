@@ -1,7 +1,7 @@
 apiVersion: plugin.halo.run/v1alpha1
 kind: ReverseProxy
 metadata:
-  name: plugin-katex-reverse-proxy
+  name: plugin-kmath-reverse-proxy
 rules:
   - path: /static/**
     file:

@@ -22,9 +22,23 @@ export default rsbuildConfig({
             Icons({ compiler: "vue3" }),
             new rspack.CopyRspackPlugin({
               patterns: [
+                // KaTeX：包含 css、js、字体
                 {
                   from: "./node_modules/katex/dist",
                   to: "../static",
+                },
+                // MathJax：整包本地化，避免任何外部请求
+                {
+                  from: "./node_modules/mathjax",
+                  to: "../static/mathjax",
+                  globOptions: {
+                    ignore: [
+                      "**/package.json",
+                      "**/README.md",
+                      "**/CONTRIBUTING.md",
+                      "**/LICENSE",
+                    ],
+                  },
                 },
               ],
             }),

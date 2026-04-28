@@ -1,34 +1,25 @@
 <script lang="ts" setup>
 import { NodeViewWrapper, nodeViewProps } from "@halo-dev/richtext-editor";
-import { computed, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import IcOutlineTipsAndUpdates from "~icons/ic/outline-tips-and-updates";
 import IcOutlineFullscreen from "~icons/ic/outline-fullscreen";
 import IcOutlineFullscreenExit from "~icons/ic/outline-fullscreen-exit";
-import { ref } from "vue";
 import { useMagicKeys } from "@vueuse/core";
 import { renderKatex } from "./render-katex";
 
 const props = defineProps(nodeViewProps);
 
-const content = computed(() => {
-  return props.node.attrs.content || "";
-});
+const content = computed(() => props.node.attrs.content || "");
 
 const renderedKatex = computed(() => {
-  if (!content.value) {
-    return "";
-  }
+  if (!content.value) return "";
   return renderKatex(content.value, false);
 });
 
 const fullscreen = ref(false);
-
 const { escape } = useMagicKeys();
-
 watch(escape, (value) => {
-  if (value && fullscreen.value) {
-    fullscreen.value = false;
-  }
+  if (value && fullscreen.value) fullscreen.value = false;
 });
 
 function onEditorChange(value: string) {

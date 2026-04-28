@@ -3,5 +3,5 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
-rootProject.name = 'plugin-katex'
+rootProject.name = 'plugin-kmath'
 
