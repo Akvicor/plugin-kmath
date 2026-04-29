@@ -19,6 +19,13 @@ type MathJaxInstance = {
     load?: string[];
     paths?: Record<string, string>;
   };
+  output?: {
+    linebreaks?: {
+      inline?: boolean;
+      [key: string]: unknown;
+    };
+    [key: string]: unknown;
+  };
   startup?: MathJaxStartup;
   svg?: {
     fontCache?: string;
@@ -87,6 +94,14 @@ function configureMathJax() {
         ["\\[", "\\]"],
       ],
       ...existing.tex,
+    },
+    output: {
+      ...existing.output,
+      linebreaks: {
+        ...existing.output?.linebreaks,
+        // 编辑器内联节点应保持紧凑，避免被 MathJax v4 行内自动断行拆分。
+        inline: false,
+      },
     },
     svg: {
       fontCache: "local",
@@ -172,6 +187,17 @@ export function renderMathJax(content: string, isInline: boolean): string {
   const node = mathJax.tex2svg(content, {
     display: !isInline,
   });
+  if (node instanceof HTMLElement) {
+    if (isInline) {
+      node.style.display = "inline-block";
+      node.style.verticalAlign = "middle";
+    } else {
+      node.style.display = "block";
+      node.style.textAlign = "center";
+      node.style.margin = "1em 0";
+    }
+  }
+
   const svg = node.querySelector<SVGSVGElement>("svg");
   if (svg) {
     if (isInline) {
@@ -183,12 +209,8 @@ export function renderMathJax(content: string, isInline: boolean): string {
   }
 
   const outerHTML = mathJax.startup?.adaptor?.outerHTML;
-  if (outerHTML && svg) {
-    return outerHTML(svg);
-  }
-
-  if (svg) {
-    return svg.outerHTML;
+  if (outerHTML) {
+    return outerHTML(node);
   }
 
   return node.outerHTML;
