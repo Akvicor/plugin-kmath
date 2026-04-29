@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import { nodeViewProps, NodeViewWrapper } from "@halo-dev/richtext-editor";
 import { VDropdown } from "@halo-dev/components";
-import { renderKatex } from "./render-katex";
+import { renderMath } from "./render-katex";
 
 const props = defineProps(nodeViewProps);
 
@@ -10,7 +10,12 @@ const content = computed(() => props.node.attrs.content || "");
 
 const renderedKatex = computed(() => {
   if (!content.value) return "";
-  return renderKatex(content.value, true);
+  try {
+    return renderMath(content.value, true);
+  } catch (error) {
+    console.error("Math preview error:", error);
+    return "";
+  }
 });
 
 const showEditor = ref(false);

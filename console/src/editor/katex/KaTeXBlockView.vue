@@ -5,7 +5,8 @@ import IcOutlineTipsAndUpdates from "~icons/ic/outline-tips-and-updates";
 import IcOutlineFullscreen from "~icons/ic/outline-fullscreen";
 import IcOutlineFullscreenExit from "~icons/ic/outline-fullscreen-exit";
 import { useMagicKeys } from "@vueuse/core";
-import { renderKatex } from "./render-katex";
+import { renderMath } from "./render-katex";
+import { getRenderEngine } from "./katex-output-setting";
 
 const props = defineProps(nodeViewProps);
 
@@ -13,8 +14,25 @@ const content = computed(() => props.node.attrs.content || "");
 
 const renderedKatex = computed(() => {
   if (!content.value) return "";
-  return renderKatex(content.value, false);
+  try {
+    return renderMath(content.value, false);
+  } catch (error) {
+    console.error("Math preview error:", error);
+    return "";
+  }
 });
+
+const renderEngineLabel = computed(() =>
+  getRenderEngine() === "mathjax" ? "MathJax 公式" : "KaTeX 公式"
+);
+const renderEngineDocsUrl = computed(() =>
+  getRenderEngine() === "mathjax"
+    ? "https://docs.mathjax.org/"
+    : "https://katex.org/"
+);
+const renderEngineDocsTooltip = computed(() =>
+  getRenderEngine() === "mathjax" ? "查阅 MathJax 的文档" : "查阅 KaTeX 的文档"
+);
 
 const fullscreen = ref(false);
 const { escape } = useMagicKeys();
@@ -35,10 +53,10 @@ function onEditorChange(value: string) {
   >
     <div class="katex-block-nav">
       <div class="katex-block-nav-start">
-        <div>KaTeX 公式</div>
+        <div>{{ renderEngineLabel }}</div>
         <a
-          v-tooltip="`查阅 KaTeX 的文档`"
-          href="https://katex.org/"
+          v-tooltip="renderEngineDocsTooltip"
+          :href="renderEngineDocsUrl"
           target="_blank"
         >
           <IcOutlineTipsAndUpdates />
@@ -62,11 +80,7 @@ function onEditorChange(value: string) {
           @change="onEditorChange"
         />
       </div>
-      <div
-        ref="previewRef"
-        class="katex-block-preview"
-        v-html="renderedKatex"
-      ></div>
+      <div class="katex-block-preview" v-html="renderedKatex"></div>
     </div>
   </node-view-wrapper>
 </template>

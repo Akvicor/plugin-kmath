@@ -14,12 +14,12 @@ import KaTeXInlineView from "./KaTeXInlineView.vue";
 import KaTeXBlockView from "./KaTeXBlockView.vue";
 import { markRaw } from "vue";
 import TablerMath from "~icons/tabler/math";
-import { renderKatex } from "./render-katex";
+import { renderMath } from "./render-katex";
 
-export const inlineInputRegex = /(?:^|\s)((?:\$)((?:[^$]+))(?:\$))$/;
-export const inlinePasteRegex = /(?:^|\s)((?:\$)((?:[^$]+))(?:\$))/g;
-export const blockInputRegex = /^\$\$[\s\n]$/;
-export const blockPasteRegex = /^\$\$((?:[^$]+))\$\$/g;
+const inlineInputRegex = /(?:^|\s)((?:\$)((?:[^$]+))(?:\$))$/;
+const inlinePasteRegex = /(?:^|\s)((?:\$)((?:[^$]+))(?:\$))/g;
+const blockInputRegex = /^\$\$[\s\n]$/;
+const blockPasteRegex = /^\$\$((?:[^$]+))\$\$/g;
 
 export const ExtensionKatexInline = Node.create<ExtensionOptions>({
   name: "katexInline",
@@ -105,7 +105,7 @@ export const ExtensionKatexInline = Node.create<ExtensionOptions>({
     const content = node.attrs.content || "";
 
     try {
-      const renderedHtml = renderKatex(content, true);
+      const renderedHtml = renderMath(content, true);
 
       const span = document.createElement("span");
       span.innerHTML = renderedHtml;
@@ -113,6 +113,7 @@ export const ExtensionKatexInline = Node.create<ExtensionOptions>({
       const attributes = mergeAttributes(HTMLAttributes, {
         class: "katex-inline",
         content,
+        "math-inline": "",
       });
       Object.entries(attributes).forEach(([key, value]) => {
         if (value !== null && value !== undefined) {
@@ -122,7 +123,7 @@ export const ExtensionKatexInline = Node.create<ExtensionOptions>({
 
       return { dom: span };
     } catch (error) {
-      console.error("KaTeX render error:", error);
+      console.error("Math render error:", error);
     }
 
     return [
@@ -261,7 +262,7 @@ export const ExtensionKatexBlock = Node.create<ExtensionOptions>({
   renderHTML({ node, HTMLAttributes }) {
     const content = node.attrs.content || "";
     try {
-      const renderedHtml = renderKatex(content, false);
+      const renderedHtml = renderMath(content, false);
 
       const div = document.createElement("div");
       div.innerHTML = renderedHtml;
@@ -269,6 +270,7 @@ export const ExtensionKatexBlock = Node.create<ExtensionOptions>({
       const attributes = mergeAttributes(HTMLAttributes, {
         class: "katex-block",
         content,
+        "math-display": "",
       });
       Object.entries(attributes).forEach(([key, value]) => {
         if (value !== null && value !== undefined) {
@@ -278,7 +280,7 @@ export const ExtensionKatexBlock = Node.create<ExtensionOptions>({
 
       return { dom: div };
     } catch (error) {
-      console.error("KaTeX render error:", error);
+      console.error("Math render error:", error);
     }
 
     return [

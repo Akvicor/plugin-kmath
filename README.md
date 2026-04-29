@@ -17,26 +17,26 @@
 
 1. KaTeX 输出格式（`katex_output`）
 
-    支持三种输出格式：
+   支持三种输出格式：
 
     - `mathml`：输出 MathML 结构。
     - `html`：输出 HTML 结构。
     - `htmlAndMathml`：同时输出 HTML + MathML。
 
-    插件默认值为：`mathml`。
+   插件默认值为：`mathml`。
 
-    实际生效范围：
+   实际生效范围：
 
-    - 控制台默认编辑器中的 KaTeX 渲染输出。
+    - 控制台默认编辑器在使用 KaTeX 引擎时的渲染输出。
     - 前台在使用 KaTeX 引擎并执行客户端渲染时的输出结构。
 
 2. 前台渲染引擎（`render_engine`）
 
-    可选 `katex` / `mathjax`，用于控制前台客户端渲染时使用的引擎。
+   可选 `katex` / `mathjax`，用于控制控制台默认编辑器和前台客户端渲染时使用的引擎。
 
-    说明：
+   说明：
 
-    - 该配置不影响控制台默认编辑器（控制台预览固定走 KaTeX）。
+    - 该配置会影响控制台默认编辑器中的预览与保存内容的渲染结构。
     - 当 `enable_frontend_render=false` 时，不执行前台客户端二次渲染流程。
     - 即使不执行二次渲染，仍会根据引擎注入对应的基础样式（KaTeX CSS 或 MathJax SVG 样式）。
 
@@ -83,8 +83,8 @@
 
 ### 配置简述
 
-1. `katex_output`：会直接影响编辑器预览与保存内容的 KaTeX 输出结构。
-2. `render_engine`：不影响编辑器内预览，只影响前台页面侧的渲染链路。
+1. `katex_output`：会直接影响使用 KaTeX 引擎时编辑器预览与保存内容的输出结构。
+2. `render_engine`：会影响编辑器内预览、保存内容的渲染结构，以及前台页面侧的渲染链路。
 3. `enable_frontend_render=false`：前台不做二次渲染；是否正常显示取决于已保存结构与当前样式支持。
 4. 若希望前台强制统一为 MathJax 效果：设置 `render_engine=mathjax` 且 `enable_frontend_render=true`。
 

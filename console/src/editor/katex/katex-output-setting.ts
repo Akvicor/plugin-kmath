@@ -1,11 +1,25 @@
+import { ensureMathJaxReady } from "./render-mathjax";
+
 export type KatexOutput = "html" | "mathml" | "htmlAndMathml";
+export type RenderEngine = "katex" | "mathjax";
 
 const CONFIG_MAP_NAME = "plugin-kmath-configMap";
 const BASIC_GROUP_KEY = "basic";
 const DEFAULT_KATEX_OUTPUT: KatexOutput = "mathml";
+const DEFAULT_RENDER_ENGINE: RenderEngine = "katex";
 
-let cachedKatexOutput: KatexOutput = DEFAULT_KATEX_OUTPUT;
-let loadingPromise: Promise<KatexOutput> | null = null;
+export interface EditorMathRenderSetting {
+  katexOutput: KatexOutput;
+  renderEngine: RenderEngine;
+}
+
+const DEFAULT_SETTING: EditorMathRenderSetting = {
+  katexOutput: DEFAULT_KATEX_OUTPUT,
+  renderEngine: DEFAULT_RENDER_ENGINE,
+};
+
+let cachedSetting: EditorMathRenderSetting = { ...DEFAULT_SETTING };
+let loadingPromise: Promise<EditorMathRenderSetting> | null = null;
 
 function normalizeKatexOutput(value: unknown): KatexOutput {
   if (value === "html" || value === "mathml" || value === "htmlAndMathml") {
@@ -14,27 +28,41 @@ function normalizeKatexOutput(value: unknown): KatexOutput {
   return DEFAULT_KATEX_OUTPUT;
 }
 
-function parseKatexOutputFromConfigMap(
+function normalizeRenderEngine(value: unknown): RenderEngine {
+  if (value === "katex" || value === "mathjax") {
+    return value;
+  }
+  return DEFAULT_RENDER_ENGINE;
+}
+
+function parseSettingFromConfigMap(
   data: Record<string, string> | undefined
-): KatexOutput {
+): EditorMathRenderSetting {
   const basicConfigRaw = data?.[BASIC_GROUP_KEY];
   if (!basicConfigRaw) {
-    return DEFAULT_KATEX_OUTPUT;
+    return { ...DEFAULT_SETTING };
   }
 
   try {
     const basicConfig = JSON.parse(basicConfigRaw) as Record<string, unknown>;
-    return normalizeKatexOutput(basicConfig.katex_output);
+    return {
+      katexOutput: normalizeKatexOutput(basicConfig.katex_output),
+      renderEngine: normalizeRenderEngine(basicConfig.render_engine),
+    };
   } catch {
-    return DEFAULT_KATEX_OUTPUT;
+    return { ...DEFAULT_SETTING };
   }
 }
 
 export function getKatexOutput(): KatexOutput {
-  return cachedKatexOutput;
+  return cachedSetting.katexOutput;
 }
 
-export async function initKatexOutputSetting(): Promise<KatexOutput> {
+export function getRenderEngine(): RenderEngine {
+  return cachedSetting.renderEngine;
+}
+
+export async function initEditorMathRenderSetting(): Promise<EditorMathRenderSetting> {
   if (!loadingPromise) {
     loadingPromise = (async () => {
       try {
@@ -56,11 +84,24 @@ export async function initKatexOutputSetting(): Promise<KatexOutput> {
         const configMap = (await response.json()) as {
           data?: Record<string, string>;
         };
-        cachedKatexOutput = parseKatexOutputFromConfigMap(configMap.data);
+        cachedSetting = parseSettingFromConfigMap(configMap.data);
       } catch {
-        cachedKatexOutput = DEFAULT_KATEX_OUTPUT;
+        cachedSetting = { ...DEFAULT_SETTING };
       }
-      return cachedKatexOutput;
+
+      if (cachedSetting.renderEngine === "mathjax") {
+        try {
+          await ensureMathJaxReady();
+        } catch (error) {
+          console.error("MathJax init failed, fallback to KaTeX:", error);
+          cachedSetting = {
+            ...cachedSetting,
+            renderEngine: DEFAULT_RENDER_ENGINE,
+          };
+        }
+      }
+
+      return cachedSetting;
     })();
   }
 

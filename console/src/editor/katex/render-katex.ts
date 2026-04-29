@@ -1,12 +1,13 @@
 import katex from "katex";
-import { getKatexOutput } from "./katex-output-setting";
+import { getKatexOutput, getRenderEngine } from "./katex-output-setting";
+import { renderMathJax } from "./render-mathjax";
 
 /**
  * 编辑器侧公式渲染入口。
  *
- * 编辑器侧固定使用 KaTeX 预览
+ * 根据插件配置选择 KaTeX 或 MathJax。
  */
-export function renderKatex(content: string, isInline: boolean): string {
+function renderKatex(content: string, isInline: boolean): string {
   const output = getKatexOutput();
 
   return katex.renderToString(content, {
@@ -16,4 +17,12 @@ export function renderKatex(content: string, isInline: boolean): string {
     maxSize: 300,
     output,
   });
+}
+
+export function renderMath(content: string, isInline: boolean): string {
+  if (getRenderEngine() === "mathjax") {
+    return renderMathJax(content, isInline);
+  }
+
+  return renderKatex(content, isInline);
 }
