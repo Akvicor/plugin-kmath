@@ -23,8 +23,8 @@ spec:
           if: $get(render_engine).value === "katex"
           name: katex_output
           label: KaTeX 输出格式
-          value: mathml
-          help: 仅影响使用 KaTeX 渲染时的输出结构
+          value: htmlAndMathml
+          help: 使用 KaTeX 渲染时的输出结构
           options:
             - label: MathML
               value: mathml
