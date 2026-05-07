@@ -1,22 +1,38 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { nodeViewProps, NodeViewWrapper } from "@halo-dev/richtext-editor";
 import { VDropdown } from "@halo-dev/components";
-import { renderMath } from "./render-katex";
+import { renderMathPreview } from "./render-katex";
 
 const props = defineProps(nodeViewProps);
 
 const content = computed(() => props.node.attrs.content || "");
 
-const renderedKatex = computed(() => {
-  if (!content.value) return "";
+const renderedMath = ref("");
+
+watch(content, async (value, _, onCleanup) => {
+  let stale = false;
+  onCleanup(() => {
+    stale = true;
+  });
+
+  if (!value) {
+    renderedMath.value = "";
+    return;
+  }
+
   try {
-    return renderMath(content.value, true);
+    const rendered = await renderMathPreview(value, true);
+    if (!stale) {
+      renderedMath.value = rendered;
+    }
   } catch (error) {
     console.error("Math preview error:", error);
-    return "";
+    if (!stale) {
+      renderedMath.value = "";
+    }
   }
-});
+}, { immediate: true });
 
 const showEditor = ref(false);
 onMounted(() => {
@@ -44,7 +60,7 @@ function onEditorChange(value: string) {
         <span
           v-if="node.attrs.content"
           contenteditable="false"
-          v-html="renderedKatex"
+          v-html="renderedMath"
         ></span>
         <span v-else> 添加LaTeX公式 </span>
       </div>

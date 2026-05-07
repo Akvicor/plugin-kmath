@@ -5,22 +5,38 @@ import IcOutlineTipsAndUpdates from "~icons/ic/outline-tips-and-updates";
 import IcOutlineFullscreen from "~icons/ic/outline-fullscreen";
 import IcOutlineFullscreenExit from "~icons/ic/outline-fullscreen-exit";
 import { useMagicKeys } from "@vueuse/core";
-import { renderMath } from "./render-katex";
+import { renderMathPreview } from "./render-katex";
 import { getRenderEngine } from "./katex-output-setting";
 
 const props = defineProps(nodeViewProps);
 
 const content = computed(() => props.node.attrs.content || "");
 
-const renderedKatex = computed(() => {
-  if (!content.value) return "";
+const renderedMath = ref("");
+
+watch(content, async (value, _, onCleanup) => {
+  let stale = false;
+  onCleanup(() => {
+    stale = true;
+  });
+
+  if (!value) {
+    renderedMath.value = "";
+    return;
+  }
+
   try {
-    return renderMath(content.value, false);
+    const rendered = await renderMathPreview(value, false);
+    if (!stale) {
+      renderedMath.value = rendered;
+    }
   } catch (error) {
     console.error("Math preview error:", error);
-    return "";
+    if (!stale) {
+      renderedMath.value = "";
+    }
   }
-});
+}, { immediate: true });
 
 const renderEngineLabel = computed(() =>
   getRenderEngine() === "mathjax" ? "MathJax 公式" : "KaTeX 公式"
@@ -80,7 +96,7 @@ function onEditorChange(value: string) {
           @change="onEditorChange"
         />
       </div>
-      <div class="katex-block-preview" v-html="renderedKatex"></div>
+      <div class="katex-block-preview" v-html="renderedMath"></div>
     </div>
   </node-view-wrapper>
 </template>

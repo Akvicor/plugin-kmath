@@ -14,7 +14,7 @@ import KaTeXInlineView from "./KaTeXInlineView.vue";
 import KaTeXBlockView from "./KaTeXBlockView.vue";
 import { markRaw } from "vue";
 import TablerMath from "~icons/tabler/math";
-import { renderMath } from "./render-katex";
+import { renderMathForSerialization } from "./render-katex";
 
 const inlineInputRegex = /(?:^|\s)((?:\$)((?:[^$]+))(?:\$))$/;
 const inlinePasteRegex = /(?:^|\s)((?:\$)((?:[^$]+))(?:\$))/g;
@@ -105,7 +105,7 @@ export const ExtensionKatexInline = Node.create<ExtensionOptions>({
     const content = node.attrs.content || "";
 
     try {
-      const renderedHtml = renderMath(content, true);
+      const renderedHtml = renderMathForSerialization(content, true);
 
       const span = document.createElement("span");
       span.innerHTML = renderedHtml;
@@ -262,7 +262,7 @@ export const ExtensionKatexBlock = Node.create<ExtensionOptions>({
   renderHTML({ node, HTMLAttributes }) {
     const content = node.attrs.content || "";
     try {
-      const renderedHtml = renderMath(content, false);
+      const renderedHtml = renderMathForSerialization(content, false);
 
       const div = document.createElement("div");
       div.innerHTML = renderedHtml;

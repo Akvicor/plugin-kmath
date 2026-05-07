@@ -37,7 +37,10 @@ type MathJaxInstance = {
     displayMath?: string[][];
     inlineMath?: string[][];
   };
-  tex2svg?: (content: string, options: MathJaxRenderOptions) => Element;
+  tex2svgPromise?: (
+    content: string,
+    options: MathJaxRenderOptions
+  ) => Promise<Element>;
 };
 
 declare global {
@@ -56,7 +59,7 @@ function getMathJax(): MathJaxInstance | undefined {
 }
 
 function isMathJaxReady(): boolean {
-  return typeof getMathJax()?.tex2svg === "function";
+  return typeof getMathJax()?.tex2svgPromise === "function";
 }
 
 function configureMathJax() {
@@ -178,15 +181,7 @@ export function ensureMathJaxReady(): Promise<void> {
   return mathJaxLoadingPromise;
 }
 
-export function renderMathJax(content: string, isInline: boolean): string {
-  const mathJax = getMathJax();
-  if (!mathJax?.tex2svg) {
-    throw new Error("MathJax is not ready");
-  }
-
-  const node = mathJax.tex2svg(content, {
-    display: !isInline,
-  });
+function applyMathJaxStyles(node: Element, isInline: boolean) {
   if (node instanceof HTMLElement) {
     if (isInline) {
       node.style.display = "inline-block";
@@ -207,11 +202,33 @@ export function renderMathJax(content: string, isInline: boolean): string {
       svg.style.margin = "0 auto";
     }
   }
+}
 
+function getMathJaxOuterHtml(mathJax: MathJaxInstance, node: Element): string {
   const outerHTML = mathJax.startup?.adaptor?.outerHTML;
   if (outerHTML) {
     return outerHTML(node);
   }
 
   return node.outerHTML;
+}
+
+export async function renderMathJaxSvgHtml(
+  content: string,
+  isInline: boolean
+): Promise<string> {
+  await ensureMathJaxReady();
+
+  const mathJax = getMathJax();
+  if (!mathJax?.tex2svgPromise) {
+    throw new Error("MathJax is not ready");
+  }
+
+  const node = await mathJax.tex2svgPromise(content, {
+    display: !isInline,
+  });
+
+  applyMathJaxStyles(node, isInline);
+
+  return getMathJaxOuterHtml(mathJax, node);
 }
