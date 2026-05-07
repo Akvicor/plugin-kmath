@@ -21,6 +21,30 @@ const inlinePasteRegex = /(?:^|\s)((?:\$)((?:[^$]+))(?:\$))/g;
 const blockInputRegex = /^\$\$[\s\n]$/;
 const blockPasteRegex = /^\$\$((?:[^$]+))\$\$/g;
 
+const serializedMathAttributes = () => ({
+  renderedContent: {
+    default: "",
+    rendered: false,
+    parseHTML: (element: HTMLElement) => {
+      return findKatexRawContent(element);
+    },
+  },
+  renderedEngine: {
+    default: "",
+    rendered: false,
+    parseHTML: (element: HTMLElement) => {
+      return element.dataset.kmathEngine || "";
+    },
+  },
+  renderedHtml: {
+    default: "",
+    rendered: false,
+    parseHTML: (element: HTMLElement) => {
+      return findMathJaxRenderedHtml(element);
+    },
+  },
+});
+
 export const ExtensionKatexInline = Node.create<ExtensionOptions>({
   name: "katexInline",
   group: "inline math",
@@ -45,6 +69,7 @@ export const ExtensionKatexInline = Node.create<ExtensionOptions>({
         default: false,
         rendered: false,
       },
+      ...serializedMathAttributes(),
     };
   },
 
@@ -105,7 +130,7 @@ export const ExtensionKatexInline = Node.create<ExtensionOptions>({
     const content = node.attrs.content || "";
 
     try {
-      const renderedHtml = renderMathForSerialization(content, true);
+      const renderedHtml = renderMathForSerialization(content, true, node.attrs);
 
       const span = document.createElement("span");
       span.innerHTML = renderedHtml;
@@ -113,6 +138,9 @@ export const ExtensionKatexInline = Node.create<ExtensionOptions>({
       const attributes = mergeAttributes(HTMLAttributes, {
         class: "katex-inline",
         content,
+        "data-content": content,
+        "data-kmath-engine":
+          node.attrs.renderedEngine === "mathjax" ? "mathjax" : undefined,
         "math-inline": "",
       });
       Object.entries(attributes).forEach(([key, value]) => {
@@ -193,6 +221,7 @@ export const ExtensionKatexBlock = Node.create<ExtensionOptions>({
       style: {
         default: "text-align: center; display: block; margin: 1em 0;",
       },
+      ...serializedMathAttributes(),
     };
   },
 
@@ -262,7 +291,11 @@ export const ExtensionKatexBlock = Node.create<ExtensionOptions>({
   renderHTML({ node, HTMLAttributes }) {
     const content = node.attrs.content || "";
     try {
-      const renderedHtml = renderMathForSerialization(content, false);
+      const renderedHtml = renderMathForSerialization(
+        content,
+        false,
+        node.attrs
+      );
 
       const div = document.createElement("div");
       div.innerHTML = renderedHtml;
@@ -270,6 +303,9 @@ export const ExtensionKatexBlock = Node.create<ExtensionOptions>({
       const attributes = mergeAttributes(HTMLAttributes, {
         class: "katex-block",
         content,
+        "data-content": content,
+        "data-kmath-engine":
+          node.attrs.renderedEngine === "mathjax" ? "mathjax" : undefined,
         "math-display": "",
       });
       Object.entries(attributes).forEach(([key, value]) => {
@@ -325,6 +361,10 @@ export const ExtensionKatexBlock = Node.create<ExtensionOptions>({
 });
 
 const findKatexRawContent = (element: HTMLElement) => {
+  if (element.dataset.content) {
+    return element.dataset.content;
+  }
+
   const annotation = element.querySelector("annotation");
   if (annotation) {
     return annotation.textContent || "";
@@ -339,4 +379,12 @@ const findKatexRawContent = (element: HTMLElement) => {
   }
 
   return "";
+};
+
+const findMathJaxRenderedHtml = (element: HTMLElement) => {
+  if (element.dataset.kmathEngine !== "mathjax") {
+    return "";
+  }
+
+  return element.innerHTML || "";
 };

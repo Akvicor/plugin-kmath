@@ -2,13 +2,29 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { nodeViewProps, NodeViewWrapper } from "@halo-dev/richtext-editor";
 import { VDropdown } from "@halo-dev/components";
-import { renderMathPreview } from "./render-katex";
+import {
+  emptySerializableMath,
+  renderMathForEditor,
+  type SerializedMathAttributes,
+} from "./render-katex";
 
 const props = defineProps(nodeViewProps);
 
 const content = computed(() => props.node.attrs.content || "");
 
 const renderedMath = ref("");
+
+function updateRenderedAttributes(attributes: SerializedMathAttributes) {
+  if (
+    props.node.attrs.renderedContent === attributes.renderedContent &&
+    props.node.attrs.renderedEngine === attributes.renderedEngine &&
+    props.node.attrs.renderedHtml === attributes.renderedHtml
+  ) {
+    return;
+  }
+
+  props.updateAttributes(attributes);
+}
 
 watch(content, async (value, _, onCleanup) => {
   let stale = false;
@@ -18,18 +34,25 @@ watch(content, async (value, _, onCleanup) => {
 
   if (!value) {
     renderedMath.value = "";
+    updateRenderedAttributes(emptySerializableMath());
     return;
   }
 
   try {
-    const rendered = await renderMathPreview(value, true);
+    const { previewHtml, serializedAttributes } = await renderMathForEditor(
+      value,
+      true
+    );
+
     if (!stale) {
-      renderedMath.value = rendered;
+      renderedMath.value = previewHtml;
+      updateRenderedAttributes(serializedAttributes);
     }
   } catch (error) {
     console.error("Math preview error:", error);
     if (!stale) {
       renderedMath.value = "";
+      updateRenderedAttributes(emptySerializableMath());
     }
   }
 }, { immediate: true });
@@ -40,7 +63,10 @@ onMounted(() => {
 });
 
 function onEditorChange(value: string) {
-  props.updateAttributes({ content: value });
+  props.updateAttributes({
+    content: value,
+    ...emptySerializableMath(),
+  });
 }
 </script>
 <template>

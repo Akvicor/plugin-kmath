@@ -5,7 +5,11 @@ import IcOutlineTipsAndUpdates from "~icons/ic/outline-tips-and-updates";
 import IcOutlineFullscreen from "~icons/ic/outline-fullscreen";
 import IcOutlineFullscreenExit from "~icons/ic/outline-fullscreen-exit";
 import { useMagicKeys } from "@vueuse/core";
-import { renderMathPreview } from "./render-katex";
+import {
+  emptySerializableMath,
+  renderMathForEditor,
+  type SerializedMathAttributes,
+} from "./render-katex";
 import { getRenderEngine } from "./katex-output-setting";
 
 const props = defineProps(nodeViewProps);
@@ -13,6 +17,18 @@ const props = defineProps(nodeViewProps);
 const content = computed(() => props.node.attrs.content || "");
 
 const renderedMath = ref("");
+
+function updateRenderedAttributes(attributes: SerializedMathAttributes) {
+  if (
+    props.node.attrs.renderedContent === attributes.renderedContent &&
+    props.node.attrs.renderedEngine === attributes.renderedEngine &&
+    props.node.attrs.renderedHtml === attributes.renderedHtml
+  ) {
+    return;
+  }
+
+  props.updateAttributes(attributes);
+}
 
 watch(content, async (value, _, onCleanup) => {
   let stale = false;
@@ -22,18 +38,25 @@ watch(content, async (value, _, onCleanup) => {
 
   if (!value) {
     renderedMath.value = "";
+    updateRenderedAttributes(emptySerializableMath());
     return;
   }
 
   try {
-    const rendered = await renderMathPreview(value, false);
+    const { previewHtml, serializedAttributes } = await renderMathForEditor(
+      value,
+      false
+    );
+
     if (!stale) {
-      renderedMath.value = rendered;
+      renderedMath.value = previewHtml;
+      updateRenderedAttributes(serializedAttributes);
     }
   } catch (error) {
     console.error("Math preview error:", error);
     if (!stale) {
       renderedMath.value = "";
+      updateRenderedAttributes(emptySerializableMath());
     }
   }
 }, { immediate: true });
@@ -57,7 +80,10 @@ watch(escape, (value) => {
 });
 
 function onEditorChange(value: string) {
-  props.updateAttributes({ content: value });
+  props.updateAttributes({
+    content: value,
+    ...emptySerializableMath(),
+  });
 }
 </script>
 

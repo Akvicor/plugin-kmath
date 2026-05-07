@@ -2,6 +2,18 @@ import katex from "katex";
 import { getKatexOutput, getRenderEngine } from "./katex-output-setting";
 import { renderMathJaxSvgHtml } from "./render-mathjax";
 
+export type SerializedMathAttributes = {
+  renderedContent: string;
+  renderedEngine: "" | "mathjax";
+  renderedHtml: string;
+};
+
+const EMPTY_RENDERED_MATH: SerializedMathAttributes = {
+  renderedContent: "",
+  renderedEngine: "",
+  renderedHtml: "",
+};
+
 /**
  * 编辑器侧公式渲染入口。
  *
@@ -28,8 +40,19 @@ function renderKatex(content: string, isInline: boolean): string {
 
 export function renderMathForSerialization(
   content: string,
-  isInline: boolean
+  isInline: boolean,
+  attrs: Record<string, unknown> = {}
 ): string {
+  if (
+    getRenderEngine() === "mathjax" &&
+    attrs.renderedEngine === "mathjax" &&
+    attrs.renderedContent === content &&
+    typeof attrs.renderedHtml === "string" &&
+    attrs.renderedHtml
+  ) {
+    return attrs.renderedHtml;
+  }
+
   if (getRenderEngine() === "mathjax") {
     return escapeHtml(content);
   }
@@ -37,13 +60,31 @@ export function renderMathForSerialization(
   return renderKatex(content, isInline);
 }
 
-export async function renderMathPreview(
+export async function renderMathForEditor(
   content: string,
   isInline: boolean
-): Promise<string> {
+): Promise<{
+  previewHtml: string;
+  serializedAttributes: SerializedMathAttributes;
+}> {
   if (getRenderEngine() === "mathjax") {
-    return renderMathJaxSvgHtml(content, isInline);
+    const renderedHtml = await renderMathJaxSvgHtml(content, isInline);
+    return {
+      previewHtml: renderedHtml,
+      serializedAttributes: {
+        renderedContent: content,
+        renderedEngine: "mathjax",
+        renderedHtml,
+      },
+    };
   }
 
-  return renderKatex(content, isInline);
+  return {
+    previewHtml: renderKatex(content, isInline),
+    serializedAttributes: { ...EMPTY_RENDERED_MATH },
+  };
+}
+
+export function emptySerializableMath(): SerializedMathAttributes {
+  return { ...EMPTY_RENDERED_MATH };
 }
