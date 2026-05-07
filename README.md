@@ -8,7 +8,7 @@
 
 1. 下载，目前提供以下两个下载方式：
     - GitHub Releases：访问 [Releases](https://github.com/Akvicor/plugin-kmath/releases) 下载 Assets 中的 JAR 文件。
-    - Halo 应用市场：待上架后补充链接。
+    - Halo 应用市场：<https://halo.run/store/apps/app-szrtpwd9>。
 2. 安装，插件安装和更新方式可参考：<https://docs.halo.run/user-guide/plugins>。
 
 ## 用法说明

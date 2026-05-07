@@ -2,6 +2,8 @@ apiVersion: plugin.halo.run/v1alpha1
 kind: Plugin
 metadata:
   name: plugin-kmath
+  annotations:
+    "store.halo.run/app-id": "app-szrtpwd9"
 spec:
   enabled: true
   requires: ">=2.23.0"
@@ -10,8 +12,8 @@ spec:
     website: https://github.com/Akvicor
   logo: logo.png
   repo: https://github.com/Akvicor/plugin-kmath
-  homepage: https://github.com/Akvicor/plugin-kmath
-  issues: https://github.com/Akvicor/plugin-kmath/issues
+  homepage: https://www.halo.run/store/apps/app-szrtpwd9
+  issues: https://www.halo.run/store/apps/app-szrtpwd9?tab=comment
   displayName: "KMath"
   description: "为编辑器和文章渲染提供 Math 支持"
   settingName: plugin-kmath-settings
