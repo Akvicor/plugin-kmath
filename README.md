@@ -1,6 +1,6 @@
 # plugin-kmath
 
-为默认编辑器和文章渲染提供数学公式支持（KaTeX / MathJax）。
+为默认编辑器和文章渲染提供数学公式支持（KaTeX / MathJax）。与原版插件相比，支持自定义 KaTeX 输出格式和前台渲染引擎，同时增加对支持MathJax的支持。
 
 ![KMath](./images/plugin-kmath-screenshot.webp)
 
